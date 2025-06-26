@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adres Zoeken - Afstand Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: white;
+    }
+
+    .header h1 {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        font-weight: 700;
+    }
+
+    .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .search-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        margin-bottom: 30px;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .search-box {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    #addressInput {
+        flex: 1;
+        padding: 18px 24px;
+        border: 2px solid #e0e6ed;
+        border-radius: 15px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: white;
+        font-family: inherit;
+    }
+
+    #addressInput:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .search-btn {
+        padding: 18px 30px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .search-btn:active {
+        transform: translateY(0);
+    }
+
+    .results-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        margin-bottom: 30px;
+        display: none;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .results-container h3 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+    }
+
+    .result-item {
+        padding: 20px;
+        border: 2px solid #f0f4f8;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .result-item:hover {
+        background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+        border-color: #667eea;
+        transform: translateX(8px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+    }
+
+    .details-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        display: none;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .address-header {
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .address-header h2 {
+        color: #667eea;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .distance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .distance-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        transform: translateY(0);
+        transition: all 0.4s ease;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .distance-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .distance-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .distance-card:hover::before {
+        opacity: 1;
+    }
+
+    .distance-card h3 {
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .distance-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .distance-time {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .distance-card small {
+        display: block;
+        opacity: 0.8;
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+
+    .streetview-container {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .streetview-link {
+        display: block;
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        color: white;
+        padding: 20px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .streetview-link:hover {
+        background: linear-gradient(135deg, #3367d6, #2d8f3f);
+        transform: scale(1.02);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 30px;
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    .error {
+        background: linear-gradient(135deg, #fff5f5, #fed7d7);
+        border: 2px solid #fc8181;
+        color: #c53030;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 15px 0;
+        font-weight: 500;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+
+    .loading::after {
+        content: "...";
+        animation: pulse 1.5s infinite;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 15px;
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+        }
+        
+        .search-box {
+            flex-direction: column;
+        }
+        
+        .search-btn {
+            width: 100%;
+        }
+        
+        .distance-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Adres Zoeken</h1>
+            <p>Zoek een adres en bekijk direct de afstanden tot centrum en werk</p>
+        </div>
+
+```
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="addressInput" placeholder="Voer een adres in (bijv. Hoofdstraat 1, Amsterdam)">
+            <button class="search-btn" onclick="searchAddress()">🔍 Zoeken</button>
+        </div>
+    </div>
+
+    <div class="results-container" id="resultsContainer">
+        <h3>Zoekresultaten:</h3>
+        <div id="resultsList"></div>
+    </div>
+
+    <div class="details-container" id="detailsContainer">
+        <div class="address-header">
+            <h2 id="selectedAddress"></h2>
+        </div>
+
+        <div class="distance-grid">
+            <div class="distance-card">
+                <h3>📍 Afstand tot centrum</h3>
+                <div class="distance-value" id="distanceToCenter">-</div>
+                <div class="distance-time" id="timeToCenter">-</div>
+                <small>Nieuwlandstraat 66, Tilburg</small>
+            </div>
+
+            <div class="distance-card">
+                <h3>💼 Afstand tot werk</h3>
+                <div class="distance-value" id="distanceToWork">-</div>
+                <div class="distance-time" id="timeToWork">-</div>
+                <small>Laan van Voorburg 4, Vught</small>
+            </div>
+        </div>
+
+        <div class="streetview-container">
+            <a href="#" target="_blank" class="streetview-link" id="streetviewLink">
+                🌍 Bekijk in Google Street View
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_KEY = '5b3ce3597851110001cf624886d30766477c4b77968596ef1aa3411b';
+    const CENTER_ADDRESS = 'Nieuwlandstraat 66, Tilburg';
+    const WORK_ADDRESS = 'Laan van Voorburg 4, Vught';
+
+    let searchResults = [];
+
+    async function searchAddress() {
+        const query = document.getElementById('addressInput').value.trim();
+        if (!query) {
+            alert('Voer een adres in om te zoeken.');
+            return;
+        }
+
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsList = document.getElementById('resultsList');
+        
+        resultsContainer.style.display = 'block';
+        resultsList.innerHTML = '<div class="loading">Zoeken naar adressen</div>';
+
+        try {
+            const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(query)}&boundary.country=NL&size=10`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                searchResults = data.features;
+                displayResults(data.features);
+            } else {
+                resultsList.innerHTML = '<div class="error">Geen resultaten gevonden. Probeer een ander adres.</div>';
+            }
+        } catch (error) {
+            console.error('Error searching address:', error);
+            resultsList.innerHTML = '<div class="error">Er is een fout opgetreden bij het zoeken. Controleer je internetverbinding en probeer het opnieuw.</div>';
+        }
+    }
+
+    function displayResults(features) {
+        const resultsList = document.getElementById('resultsList');
+        resultsList.innerHTML = '';
+
+        features.forEach((feature, index) => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = `
+                <strong>${feature.properties.label}</strong><br>
+                <small style="color: #666;">${feature.properties.country}${feature.properties.region ? ', ' + feature.properties.region : ''}</small>
+            `;
+            resultItem.onclick = () => selectAddress(index);
+            resultsList.appendChild(resultItem);
+        });
+    }
+
+    async function selectAddress(index) {
+        const selectedFeature = searchResults[index];
+        const coords = selectedFeature.geometry.coordinates; // [longitude, latitude]
+        
+        document.getElementById('selectedAddress').textContent = selectedFeature.properties.label;
+        document.getElementById('detailsContainer').style.display = 'block';
+
+        // Reset distance displays
+        document.getElementById('distanceToCenter').textContent = '...';
+        document.getElementById('timeToCenter').textContent = 'Berekenen...';
+        document.getElementById('distanceToWork').textContent = '...';
+        document.getElementById('timeToWork').textContent = 'Berekenen...';
+
+        // Set up Street View link
+        const streetviewLink = document.getElementById('streetviewLink');
+        streetviewLink.href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${coords[1]},${coords[0]}`;
+
+        // Calculate distances
+        await calculateDistances(coords);
+    }
+
+    async function calculateDistances(selectedCoords) {
+        // Get coordinates for center and work addresses
+        const centerCoords = await getCoordinates(CENTER_ADDRESS);
+        const workCoords = await getCoordinates(WORK_ADDRESS);
+
+        if (centerCoords) {
+            await calculateRoute(selectedCoords, centerCoords, 'center');
+        } else {
+            document.getElementById('distanceToCenter').textContent = 'Fout';
+            document.getElementById('timeToCenter').textContent = 'Kon adres niet vinden';
+        }
+
+        if (workCoords) {
+            await calculateRoute(selectedCoords, workCoords, 'work');
+        } else {
+            document.getElementById('distanceToWork').textContent = 'Fout';
+            document.getElementById('timeToWork').textContent = 'Kon adres niet vinden';
+        }
+    }
+
+    async function getCoordinates(address) {
+        try {
+            const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(address)}&boundary.country=NL&size=1`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                return data.features[0].geometry.coordinates;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting coordinates for', address, ':', error);
+            return null;
+        }
+    }
+
+    async function calculateRoute(startCoords, endCoords, type) {
+        try {
+            const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    coordinates: [startCoords, endCoords]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.routes && data.routes.length > 0) {
+                const route = data.routes[0];
+                const distance = (route.summary.distance / 1000).toFixed(1); // Convert to km
+                const duration = Math.round(route.summary.duration / 60); // Convert to minutes
+
+                if (type === 'center') {
+                    document.getElementById('distanceToCenter').textContent = `${distance} km`;
+                    document.getElementById('timeToCenter').textContent = `${duration} min rijden`;
+                } else if (type === 'work') {
+                    document.getElementById('distanceToWork').textContent = `${distance} km`;
+                    document.getElementById('timeToWork').textContent = `${duration} min rijden`;
+                }
+            } else {
+                throw new Error('No route found');
+            }
+        } catch (error) {
+            console.error('Error calculating route:', error);
+            if (type === 'center') {
+                document.getElementById('distanceToCenter').textContent = 'Fout';
+                document.getElementById('timeToCenter').textContent = 'Route niet gevonden';
+            } else if (type === 'work') {
+                document.getElementById('distanceToWork').textContent = 'Fout';
+                document.getElementById('timeToWork').textContent = 'Route niet gevonden';
+            }
+        }
+    }
+
+    // Allow Enter key to trigger search
+    document.getElementById('addressInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchAddress();
+        }
+    });
+
+    // Focus on input when page loads
+    window.addEventListener('load', function() {
+        document.getElementById('addressInput').focus();
+    });
+</script>
+```
+
+</body>
+</html>
