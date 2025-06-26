@@ -328,14 +328,14 @@
 
         <div class="distance-grid">
             <div class="distance-card">
-                <h3>📍 Afstand tot centrum</h3>
+                <h3>🚴‍♂️ Afstand tot centrum</h3>
                 <div class="distance-value" id="distanceToCenter">-</div>
                 <div class="distance-time" id="timeToCenter">-</div>
                 <small>Nieuwlandstraat 66, Tilburg</small>
             </div>
 
             <div class="distance-card">
-                <h3>💼 Afstand tot werk</h3>
+                <h3>🚗 Afstand tot werk</h3>
                 <div class="distance-value" id="distanceToWork">-</div>
                 <div class="distance-time" id="timeToWork">-</div>
                 <small>Laan van Voorburg 4, Vught</small>
@@ -470,7 +470,10 @@
 
     async function calculateRoute(startCoords, endCoords, type) {
         try {
-            const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}`, {
+            // Use different transport modes: cycling for center, driving for work
+            const transportMode = type === 'center' ? 'cycling-regular' : 'driving-car';
+            
+            const response = await fetch(`https://api.openrouteservice.org/v2/directions/${transportMode}?api_key=${API_KEY}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -493,7 +496,7 @@
 
                 if (type === 'center') {
                     document.getElementById('distanceToCenter').textContent = `${distance} km`;
-                    document.getElementById('timeToCenter').textContent = `${duration} min rijden`;
+                    document.getElementById('timeToCenter').textContent = `${duration} min fietsen`;
                 } else if (type === 'work') {
                     document.getElementById('distanceToWork').textContent = `${distance} km`;
                     document.getElementById('timeToWork').textContent = `${duration} min rijden`;
