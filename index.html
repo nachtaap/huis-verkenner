@@ -1003,6 +1003,152 @@
         // Scroll to details
         document.getElementById('detailsContainer').scrollIntoView({ behavior: 'smooth' });
     }
+    
+    // Voeg deze functies toe aan je bestaande JavaScript
+
+function resetHouseholdDisplays() {
+document.getElementById(‘singleHouseholds’).textContent = ‘…’;
+document.getElementById(‘couplesNoKids’).textContent = ‘…’;
+document.getElementById(‘couplesWithKids’).textContent = ‘…’;
+document.getElementById(‘singleParents’).textContent = ‘…’;
+document.getElementById(‘otherHouseholds’).textContent = ‘…’;
+document.getElementById(‘avgHouseholdSize’).textContent = ‘…’;
+}
+
+async function loadHouseholdData(addressProperties) {
+try {
+// Extract postal code from the address
+let postalCode = extractPostalCode(addressProperties);
+
+```
+    if (!postalCode) {
+        showHouseholdError('Geen postcode gevonden in het adres');
+        return;
+    }
+
+    // For demo purposes, we'll use simulated CBS data
+    // In a real implementation, you would call the actual CBS API
+    const householdData = await getHouseholdDataFromCBS(postalCode);
+    
+    if (householdData) {
+        displayHouseholdData(householdData);
+    } else {
+        showHouseholdError('Geen huishoudensgegevens beschikbaar voor deze postcode');
+    }
+    
+} catch (error) {
+    console.error('Error loading household data:', error);
+    showHouseholdError('Fout bij ophalen van huishoudensgegevens');
+}
+```
+
+}
+
+function extractPostalCode(properties) {
+// Try to extract postal code from different properties
+const label = properties.label || ‘’;
+const postalcode = properties.postalcode;
+
+```
+if (postalcode) {
+    return postalcode.substring(0, 4); // Use first 4 digits
+}
+
+// Try to extract from label using regex
+const postalCodeMatch = label.match(/(\d{4})\s*[A-Z]{2}/);
+if (postalCodeMatch) {
+    return postalCodeMatch[1];
+}
+
+return null;
+```
+
+}
+
+async function getHouseholdDataFromCBS(postalCode) {
+// This is a simulated function. In a real implementation, you would:
+// 1. Call the CBS StatLine API
+// 2. Use the postal code to get the right statistical area
+// 3. Retrieve actual household composition data
+
+```
+// For now, we'll return simulated data based on postal code patterns
+await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+
+// Simulated data - in reality this would come from CBS
+const simulatedData = generateSimulatedHouseholdData(postalCode);
+
+return simulatedData;
+```
+
+}
+
+function generateSimulatedHouseholdData(postalCode) {
+// Generate realistic-looking data based on postal code
+const seed = parseInt(postalCode) || 1000;
+const random = (min, max) => Math.round(min + (seed % 100) / 100 * (max - min));
+
+```
+// Simulate different household patterns for different areas
+let baseData;
+if (seed < 3000) {
+    // Urban areas - more single households
+    baseData = {
+        singleHouseholds: random(35, 50),
+        couplesNoKids: random(25, 35),
+        couplesWithKids: random(20, 30),
+        singleParents: random(8, 15),
+        avgSize: (random(19, 24) / 10)
+    };
+} else if (seed < 7000) {
+    // Suburban areas - more families
+    baseData = {
+        singleHouseholds: random(25, 35),
+        couplesNoKids: random(20, 30),
+        couplesWithKids: random(30, 45),
+        singleParents: random(5, 12),
+        avgSize: (random(22, 28) / 10)
+    };
+} else {
+    // Rural areas - mixed pattern
+    baseData = {
+        singleHouseholds: random(30, 40),
+        couplesNoKids: random(25, 35),
+        couplesWithKids: random(25, 35),
+        singleParents: random(6, 10),
+        avgSize: (random(20, 26) / 10)
+    };
+}
+
+// Calculate remaining percentage for "other households"
+const totalPercentage = baseData.singleHouseholds + baseData.couplesNoKids + 
+                       baseData.couplesWithKids + baseData.singleParents;
+baseData.otherHouseholds = Math.max(0, 100 - totalPercentage);
+
+return baseData;
+```
+
+}
+
+function displayHouseholdData(data) {
+document.getElementById(‘singleHouseholds’).textContent = `${data.singleHouseholds}%`;
+document.getElementById(‘couplesNoKids’).textContent = `${data.couplesNoKids}%`;
+document.getElementById(‘couplesWithKids’).textContent = `${data.couplesWithKids}%`;
+document.getElementById(‘singleParents’).textContent = `${data.singleParents}%`;
+document.getElementById(‘otherHouseholds’).textContent = `${data.otherHouseholds}%`;
+document.getElementById(‘avgHouseholdSize’).textContent = `${data.avgSize}`;
+}
+
+function showHouseholdError(message) {
+document.getElementById(‘singleHouseholds’).textContent = ‘N/A’;
+document.getElementById(‘couplesNoKids’).textContent = ‘N/A’;
+document.getElementById(‘couplesWithKids’).textContent = ‘N/A’;
+document.getElementById(‘singleParents’).textContent = ‘N/A’;
+document.getElementById(‘otherHouseholds’).textContent = ‘N/A’;
+document.getElementById(‘avgHouseholdSize’).textContent = ‘N/A’;
+console.log(‘Household data error:’, message);
+}
+
 </script>
 
 </body>
