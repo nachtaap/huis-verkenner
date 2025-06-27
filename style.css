@@ -366,21 +366,20 @@ body {
 
 /* CSS voor huishoudensgegevens sectie - vervang je bestaande households CSS */
 
+/* CSS voor huishoudensgegevens sectie - vervang je bestaande households CSS */
+
 .households-container {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    /* Geen witte achtergrond meer - alleen ruimte en titel */
     margin-bottom: 30px;
-    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .households-container h3 {
-    color: #667eea;
-    margin-bottom: 20px;
-    font-size: 1.3rem;
+    color: white;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
     text-align: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: 600;
 }
 
 .households-grid {
@@ -391,14 +390,14 @@ body {
 }
 
 .household-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
     color: white;
     padding: 30px;
     border-radius: 20px;
     text-align: center;
     transform: translateY(0);
     transition: all 0.4s ease;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
     position: relative;
     overflow: hidden;
 }
@@ -417,7 +416,7 @@ body {
 
 .household-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 20px 40px rgba(255, 107, 53, 0.4);
 }
 
 .household-card:hover::before {
@@ -449,14 +448,15 @@ body {
 
 .households-disclaimer {
     text-align: center;
-    color: #667eea;
+    color: white;
     font-size: 0.9rem;
     font-style: italic;
     margin-top: 15px;
     padding: 20px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
     border-radius: 15px;
-    border: 2px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Media queries voor responsive design */
