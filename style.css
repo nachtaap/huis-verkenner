@@ -459,13 +459,6 @@ body {
     border: 2px solid rgba(102, 126, 234, 0.1);
 }
 
-/* Media query toevoeging voor mobiel */
-@media (max-width: 768px) {
-    .households-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-}
-
 /* Media queries voor responsive design */
 @media (max-width: 768px) {
     .container {
