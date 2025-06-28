@@ -24,7 +24,6 @@ alert(‘Voer een adres in om te zoeken.’);
 return;
 }
 
-```
 const resultsContainer = document.getElementById('resultsContainer');
 const resultsList = document.getElementById('resultsList');
 
@@ -50,7 +49,6 @@ try {
     console.error('Error searching address:', error);
     resultsList.innerHTML = '<div class="error">Er is een fout opgetreden bij het zoeken. Controleer je internetverbinding en probeer het opnieuw.</div>';
 }
-```
 
 }
 
@@ -59,7 +57,6 @@ function displayResults(features) {
 const resultsList = document.getElementById(‘resultsList’);
 resultsList.innerHTML = ‘’;
 
-```
 features.forEach((feature, index) => {
     const resultItem = document.createElement('div');
     resultItem.className = 'result-item';
@@ -70,7 +67,6 @@ features.forEach((feature, index) => {
     resultItem.onclick = () => selectAddress(index);
     resultsList.appendChild(resultItem);
 });
-```
 
 }
 
@@ -79,7 +75,6 @@ async function selectAddress(index) {
 const selectedFeature = searchResults[index];
 const coords = selectedFeature.geometry.coordinates; // [longitude, latitude]
 
-```
 // Huidige selectie opslaan voor later opslaan
 currentSelectedAddress = {
     label: selectedFeature.properties.label,
@@ -105,7 +100,6 @@ showPopularitySection();
 // Afstanden berekenen en huishoudensgegevens laden
 await calculateDistances(coords);
 await loadHouseholdData(selectedFeature.properties);
-```
 
 }
 
@@ -124,10 +118,8 @@ document.getElementById(‘timeToPaPiegie’).textContent = ‘Berekenen…’;
 document.getElementById(‘distanceToAmarant’).textContent = ‘…’;
 document.getElementById(‘timeToAmarant’).textContent = ‘Berekenen…’;
 
-```
 // Verberg de populariteitsindex sectie
 hidePopularitySection();
-```
 
 }
 
@@ -140,7 +132,6 @@ const paLonnieCoords = await getCoordinates(PA_LONNIE_ADDRESS);
 const paPiegieCoords = await getCoordinates(PA_PIEGIE_ADDRESS);
 const amarantCoords = await getCoordinates(AMARANT_ADDRESS);
 
-```
 // Routes berekenen
 if (centerCoords) {
     await calculateRoute(selectedCoords, centerCoords, 'center');
@@ -176,7 +167,6 @@ if (amarantCoords) {
     document.getElementById('distanceToAmarant').textContent = 'Fout';
     document.getElementById('timeToAmarant').textContent = 'Kon adres niet vinden';
 }
-```
 
 }
 
@@ -185,7 +175,6 @@ async function getCoordinates(address) {
 try {
 const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(address)}&boundary.country=NL&size=1`);
 
-```
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -200,7 +189,6 @@ const response = await fetch(`https://api.openrouteservice.org/geocode/search?ap
     console.error('Error getting coordinates for', address, ':', error);
     return null;
 }
-```
 
 }
 
@@ -210,7 +198,6 @@ try {
 // Verschillende vervoersmodi: fietsen voor centrum, auto voor de rest
 const transportMode = type === ‘center’ ? ‘cycling-regular’ : ‘driving-car’;
 
-```
     const response = await fetch(`https://api.openrouteservice.org/v2/directions/${transportMode}?api_key=${API_KEY}`, {
         method: 'POST',
         headers: {
@@ -241,7 +228,6 @@ const transportMode = type === ‘center’ ? ‘cycling-regular’ : ‘driving
     console.error('Error calculating route:', error);
     updateDistanceDisplayError(type);
 }
-```
 
 }
 
@@ -292,7 +278,6 @@ async function loadSavedAddresses() {
 const savedList = document.getElementById(‘savedAddressesList’);
 savedList.innerHTML = ‘<div class="loading">Opgeslagen adressen laden…</div>’;
 
-```
 try {
     const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
         headers: {
@@ -314,7 +299,6 @@ try {
     console.error('Error loading saved addresses:', error);
     savedList.innerHTML = '<div class="error">⚠️ Zet je JSONBin API key en Bin ID in de code om adressen op te slaan</div>';
 }
-```
 
 }
 
@@ -322,7 +306,6 @@ try {
 function displaySavedAddresses(addresses) {
 const savedList = document.getElementById(‘savedAddressesList’);
 
-```
 if (addresses.length === 0) {
     savedList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Nog geen opgeslagen adressen. Zoek een adres en sla het op!</div>';
     return;
@@ -345,7 +328,6 @@ addresses.forEach((address, index) => {
     };
     savedList.appendChild(addressItem);
 });
-```
 
 }
 
@@ -356,7 +338,6 @@ alert(‘Selecteer eerst een adres om op te slaan.’);
 return;
 }
 
-```
 try {
     // Bestaande adressen laden
     const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
@@ -406,7 +387,6 @@ try {
     console.error('Error saving address:', error);
     alert('Er is een fout opgetreden bij het opslaan. Controleer je JSONBin configuratie.');
 }
-```
 
 }
 
@@ -416,7 +396,6 @@ if (!confirm(‘Weet je zeker dat je dit adres wilt verwijderen?’)) {
 return;
 }
 
-```
 try {
     // Bestaande adressen laden
     const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
@@ -452,7 +431,6 @@ try {
     console.error('Error deleting address:', error);
     alert('Er is een fout opgetreden bij het verwijderen.');
 }
-```
 
 }
 
@@ -461,7 +439,6 @@ function selectSavedAddress(address) {
 // Huidige selectie opslaan
 currentSelectedAddress = address;
 
-```
 document.getElementById('selectedAddress').textContent = address.label;
 document.getElementById('detailsContainer').style.display = 'block';
 
@@ -482,7 +459,6 @@ loadHouseholdData(address.properties);
 
 // Naar details scrollen
 document.getElementById('detailsContainer').scrollIntoView({ behavior: 'smooth' });
-```
 
 }
 
@@ -504,7 +480,6 @@ try {
 // Postcode uit adres halen
 let postalCode = extractPostalCode(addressProperties);
 
-```
     if (!postalCode) {
         showHouseholdError('Geen postcode gevonden in het adres');
         return;
@@ -524,7 +499,6 @@ let postalCode = extractPostalCode(addressProperties);
     console.error('Error loading household data:', error);
     showHouseholdError('Fout bij ophalen van huishoudensgegevens');
 }
-```
 
 }
 
@@ -534,7 +508,6 @@ function extractPostalCode(properties) {
 const label = properties.label || ‘’;
 const postalcode = properties.postalcode;
 
-```
 if (postalcode) {
     return postalcode.substring(0, 4); // Eerste 4 cijfers gebruiken
 }
@@ -546,7 +519,6 @@ if (postalCodeMatch) {
 }
 
 return null;
-```
 
 }
 
@@ -555,12 +527,10 @@ async function getHouseholdDataFromCBS(postalCode) {
 // Voor nu simuleren we een API vertraging
 await new Promise(resolve => setTimeout(resolve, 1000));
 
-```
 // Gesimuleerde data - in werkelijkheid komt dit van CBS
 const simulatedData = generateSimulatedHouseholdData(postalCode);
 
 return simulatedData;
-```
 
 }
 
@@ -570,7 +540,6 @@ function generateSimulatedHouseholdData(postalCode) {
 const seed = parseInt(postalCode) || 1000;
 const random = (min, max) => Math.round(min + (seed % 100) / 100 * (max - min));
 
-```
 // Verschillende huishoudenspatronen simuleren voor verschillende gebieden
 let baseData;
 if (seed < 3000) {
@@ -608,7 +577,6 @@ const totalPercentage = baseData.singleHouseholds + baseData.couplesNoKids +
 baseData.otherHouseholds = Math.max(0, 100 - totalPercentage);
 
 return baseData;
-```
 
 }
 
@@ -641,7 +609,6 @@ const views = parseInt(document.getElementById(‘viewsInput’).value) || 0;
 const saves = parseInt(document.getElementById(‘savesInput’).value) || 0;
 const daysOnline = parseInt(document.getElementById(‘daysOnlineInput’).value) || 1;
 
-```
 // Validatie
 if (views === 0) {
     alert('Voer het aantal bekeken in');
@@ -691,7 +658,6 @@ resultDiv.classList.remove('show');
 setTimeout(() => {
     resultDiv.classList.add('show');
 }, 50);
-```
 
 }
 
@@ -711,7 +677,6 @@ this.title = ‘’;
 });
 }
 
-```
 // Enter toets support
 ['viewsInput', 'savesInput', 'daysOnlineInput'].forEach(id => {
     const element = document.getElementById(id);
@@ -723,7 +688,6 @@ this.title = ‘’;
         });
     }
 });
-```
 
 }
 
@@ -751,13 +715,11 @@ const savesInput = document.getElementById(‘savesInput’);
 const daysInput = document.getElementById(‘daysOnlineInput’);
 const resultDiv = document.getElementById(‘popularityResult’);
 
-```
     if (viewsInput) viewsInput.value = '';
     if (savesInput) savesInput.value = '';
     if (daysInput) daysInput.value = '';
     if (resultDiv) resultDiv.classList.remove('show');
 }
-```
 
 }
 
