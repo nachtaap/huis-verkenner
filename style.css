@@ -535,6 +535,10 @@ body {
     background: #ff9800;
 }
 
+.notification.info {
+    background: var(--primary-blue);
+}
+
 .hidden {
     display: none;
 }
