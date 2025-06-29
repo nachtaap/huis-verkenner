@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📍 Adres Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -68,62 +69,95 @@
             <!-- Address Detail Tab -->
             <div id="address-detail-tab" class="tab-content hidden">
                 <div class="detail-header">
-                    <button class="back-btn" onclick="goBackToAddresses()">← Terug</button>
-                    <h2 id="detail-title">Adres Details</h2>
+                    <button class="btn btn-outline-primary btn-sm back-btn" onclick="goBackToAddresses()">
+                        ← Terug
+                    </button>
+                    <h2 id="detail-title" class="mb-0">Adres Details</h2>
                 </div>
                 
                 <div class="detail-content">
-                    <div class="section">
-                        <h3 class="section-title">📍 Afstanden</h3>
-                        <div class="distance-grid">
-                            <div class="distance-card" id="distance-centrum">
-                                <div class="distance-icon">🏢</div>
-                                <div class="distance-info">
-                                    <div class="distance-name">Centrum</div>
-                                    <div class="distance-value">🚴‍♂️ Berekenen...</div>
+                    <!-- Distance Cards Row 1 -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <div class="card h-100 border-0 shadow-sm distance-card bg-centrum" id="distance-centrum">
+                                <div class="card-body text-center p-3">
+                                    <div class="distance-icon mb-2">🏢</div>
+                                    <h6 class="card-title mb-1 text-white">Centrum</h6>
+                                    <small class="text-white-50 distance-value">🚴‍♂️ Berekenen...</small>
                                 </div>
                             </div>
-                            
-                            <div class="distance-card" id="distance-werk">
-                                <div class="distance-icon">💼</div>
-                                <div class="distance-info">
-                                    <div class="distance-name">Werk</div>
-                                    <div class="distance-value">🚗 Berekenen...</div>
-                                </div>
-                            </div>
-                            
-                            <div class="distance-card" id="distance-schijndel">
-                                <div class="distance-icon">🏘️</div>
-                                <div class="distance-info">
-                                    <div class="distance-name">Schijndel</div>
-                                    <div class="distance-value">🚗 Berekenen...</div>
-                                </div>
-                            </div>
-                            
-                            <div class="distance-card" id="distance-rosmalen">
-                                <div class="distance-icon">🏡</div>
-                                <div class="distance-info">
-                                    <div class="distance-name">Rosmalen</div>
-                                    <div class="distance-value">🚗 Berekenen...</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card h-100 border-0 shadow-sm distance-card bg-werk" id="distance-werk">
+                                <div class="card-body text-center p-3">
+                                    <div class="distance-icon mb-2">💼</div>
+                                    <h6 class="card-title mb-1 text-white">Werk</h6>
+                                    <small class="text-white-50 distance-value">🚗 Berekenen...</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="section">
-                        <h3 class="section-title">ℹ️ Adres Informatie</h3>
-                        <div class="info-card">
-                            <div id="detail-full-address">Volledig adres</div>
-                            <div id="detail-coordinates">Coördinaten</div>
-                            <div id="detail-saved-date">Opgeslagen op</div>
+                    <!-- Distance Cards Row 2 -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="card h-100 border-0 shadow-sm distance-card bg-schijndel" id="distance-schijndel">
+                                <div class="card-body text-center p-3">
+                                    <div class="distance-icon mb-2">🏘️</div>
+                                    <h6 class="card-title mb-1 text-white">Schijndel</h6>
+                                    <small class="text-white-50 distance-value">🚗 Berekenen...</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card h-100 border-0 shadow-sm distance-card bg-rosmalen" id="distance-rosmalen">
+                                <div class="card-body text-center p-3">
+                                    <div class="distance-icon mb-2">🏡</div>
+                                    <h6 class="card-title mb-1 text-white">Rosmalen</h6>
+                                    <small class="text-white-50 distance-value">🚗 Berekenen...</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="section">
-                        <h3 class="section-title">🗑️ Acties</h3>
-                        <button class="btn-danger" onclick="deleteCurrentAddress()">
-                            Verwijder dit adres
-                        </button>
+                    <!-- Address Info Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-3">📍 Adres Informatie</h6>
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <div class="info-item">
+                                                <small class="text-muted">Volledig adres</small>
+                                                <div id="detail-full-address" class="fw-medium">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-item">
+                                                <small class="text-muted">Coördinaten</small>
+                                                <div id="detail-coordinates" class="fw-medium small">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-item">
+                                                <small class="text-muted">Opgeslagen</small>
+                                                <div id="detail-saved-date" class="fw-medium small">-</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="row">
+                        <div class="col-12">
+                            <button class="btn btn-danger w-100" onclick="deleteCurrentAddress()">
+                                🗑️ Verwijder dit adres
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -180,6 +214,7 @@
         <span id="notification-text"></span>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
