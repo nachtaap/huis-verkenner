@@ -94,6 +94,23 @@ body {
     background: linear-gradient(135deg, #95c7db, var(--primary-blue)) !important;
 }
 
+/* CBS Info Cards */
+.bg-info-1 {
+    background: linear-gradient(135deg, #7b68ee, #6a5acd) !important;
+}
+
+.bg-info-2 {
+    background: linear-gradient(135deg, #20b2aa, #008b8b) !important;
+}
+
+.bg-info-3 {
+    background: linear-gradient(135deg, #ffa07a, #ff7f50) !important;
+}
+
+.bg-info-4 {
+    background: linear-gradient(135deg, #dda0dd, #d8bfd8) !important;
+}
+
 /* Distance Cards */
 .distance-card {
     transition: all 0.3s ease;
@@ -113,6 +130,25 @@ body {
 .distance-icon {
     font-size: 28px;
     margin-bottom: 8px;
+}
+
+.info-card {
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+}
+
+.info-card.loading {
+    opacity: 0.7;
+}
+
+.info-value {
+    font-size: 11px !important;
+    font-weight: 500;
 }
 
 .distance-value {
