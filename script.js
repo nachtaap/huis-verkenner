@@ -239,15 +239,23 @@ async function addAddress(index) {
     showLoading('Adres opslaan...');
 
     try {
+        // First add to local array
         addresses.push(newAddress);
+        
+        // Save to localStorage immediately as backup
+        saveToLocalStorage();
+        
+        // Update UI immediately
+        updateAddressCount();
+        updateAddressList();
+        
+        // Try to save to cloud
         await saveToCloud();
+        updateLastSync();
         
         // Clear search and switch to addresses tab
         document.getElementById('search-input').value = '';
         clearSearchResults();
-        updateAddressCount();
-        updateAddressList();
-        updateLastSync();
         switchTab('addresses');
         
         // Update tab display
@@ -257,10 +265,18 @@ async function addAddress(index) {
         showNotification('Adres succesvol opgeslagen!', 'success');
         
     } catch (error) {
-        console.error('Error adding address:', error);
-        // Remove from local array if cloud save failed
-        addresses.pop();
-        showNotification('Opslaan mislukt. Controleer je internetverbinding.', 'error');
+        console.error('Error saving to cloud:', error);
+        // Keep the address locally but show warning
+        showNotification('Adres lokaal opgeslagen. Cloud sync mislukt - probeer later opnieuw.', 'warning');
+        
+        // Clear search and switch to addresses tab anyway
+        document.getElementById('search-input').value = '';
+        clearSearchResults();
+        switchTab('addresses');
+        
+        // Update tab display
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab')[1].classList.add('active');
     } finally {
         hideLoading();
     }
@@ -274,21 +290,33 @@ async function removeAddress(index) {
 
     showLoading('Adres verwijderen...');
     
+    // Store the address to restore if needed
+    const removedAddress = addresses[index];
+    
     try {
-        const removedAddress = addresses[index];
+        // Remove from local array first
         addresses.splice(index, 1);
-        await saveToCloud();
         
+        // Update UI immediately
         updateAddressCount();
         updateAddressList();
+        
+        // Save to localStorage as backup
+        saveToLocalStorage();
+        
+        // Try to save to cloud
+        await saveToCloud();
         updateLastSync();
         
         showNotification('Adres verwijderd!', 'success');
     } catch (error) {
-        console.error('Error removing address:', error);
-        // Restore the address if cloud save failed
+        console.error('Error removing from cloud:', error);
+        // Restore the address locally if cloud save failed
         addresses.splice(index, 0, removedAddress);
-        showNotification('Verwijderen mislukt. Controleer je internetverbinding.', 'error');
+        updateAddressCount();
+        updateAddressList();
+        saveToLocalStorage();
+        showNotification('Lokaal verwijderd. Cloud sync mislukt - probeer later opnieuw.', 'warning');
     } finally {
         hideLoading();
     }
@@ -302,11 +330,17 @@ function openInMaps(coordinates) {
 
 // Tab switching
 function switchTab(tabName) {
+    // Find the clicked tab or use current if called programmatically
+    const clickedTab = event?.target || document.querySelector(`.tab[onclick*="${tabName}"]`);
+    
     // Update tab buttons
     document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    event.target.classList.add('active');
+    
+    if (clickedTab) {
+        clickedTab.classList.add('active');
+    }
 
     // Hide all tab content
     document.querySelectorAll('.tab-content').forEach(content => {
@@ -314,7 +348,11 @@ function switchTab(tabName) {
     });
 
     // Show selected tab
-    document.getElementById(tabName + '-tab').classList.remove('hidden');
+    const targetTab = document.getElementById(tabName + '-tab');
+    if (targetTab) {
+        targetTab.classList.remove('hidden');
+    }
+    
     currentTab = tabName;
 
     // Update addresses display when switching to addresses tab
