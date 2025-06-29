@@ -754,36 +754,39 @@ function goBackToAddresses() {
     document.querySelectorAll('.tab')[1].classList.add('active');
 }
 
-// Get CBS data for the address
+// Get CBS data for the address using real CBS API
 async function getCBSData(coordinates, addressName) {
     try {
-        // Mock CBS data for demonstration
-        // In a real implementation, you would call the CBS API
-        // Example: https://www.cbs.nl/en-gb/our-services/open-data
+        const [lng, lat] = coordinates;
         
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // First get the CBS area (gemeente/wijk/buurt) from coordinates
+        showNotification('CBS data ophalen...', 'info');
         
-        // Mock data based on typical Dutch neighborhood statistics
-        const mockCBSData = {
-            gezinnen: Math.floor(Math.random() * 25) + 35, // 35-60%
-            alleenstaand: Math.floor(Math.random() * 20) + 25, // 25-45% 
-            eenOuder: Math.floor(Math.random() * 15) + 5, // 5-20%
-            overig: Math.floor(Math.random() * 10) + 5 // 5-15%
-        };
+        const cbsAreaData = await getCBSAreaFromCoordinates(lng, lat);
         
-        // Normalize to 100%
-        const total = mockCBSData.gezinnen + mockCBSData.alleenstaand + mockCBSData.eenOuder + mockCBSData.overig;
-        if (total !== 100) {
-            const adjustment = 100 - total;
-            mockCBSData.gezinnen += adjustment;
+        if (cbsAreaData) {
+            console.log('Found CBS area:', cbsAreaData);
+            
+            // Get household composition data from CBS API
+            const householdData = await getCBSHouseholdData(cbsAreaData);
+            
+            if (householdData) {
+                updateCBSInfo('gezinnen', householdData.gezinnen);
+                updateCBSInfo('alleenstaand', householdData.alleenstaand);
+                updateCBSInfo('1ouder', householdData.eenOuder);
+                updateCBSInfo('overig', householdData.overig);
+                
+                showNotification('CBS data succesvol geladen!', 'success');
+                return;
+            }
         }
         
-        // Update CBS info cards
-        updateCBSInfo('gezinnen', mockCBSData.gezinnen);
-        updateCBSInfo('alleenstaand', mockCBSData.alleenstaand);
-        updateCBSInfo('1ouder', mockCBSData.eenOuder);
-        updateCBSInfo('overig', mockCBSData.overig);
+        // If no data found, show that
+        ['gezinnen', 'alleenstaand', '1ouder', 'overig'].forEach(type => {
+            updateCBSInfo(type, null);
+        });
+        
+        showNotification('Geen CBS data beschikbaar voor dit gebied', 'warning');
         
     } catch (error) {
         console.error('Error getting CBS data:', error);
@@ -792,7 +795,188 @@ async function getCBSData(coordinates, addressName) {
         ['gezinnen', 'alleenstaand', '1ouder', 'overig'].forEach(type => {
             updateCBSInfo(type, null);
         });
+        
+        showNotification('Fout bij ophalen CBS data', 'error');
     }
+}
+
+// Get CBS area (gemeente/wijk/buurt) from coordinates
+async function getCBSAreaFromCoordinates(lng, lat) {
+    try {
+        // First try to get buurt (neighborhood) level data
+        let wfsUrl = `https://geodata.nationaalgeoregister.nl/cbs/wfs/v1_0?` +
+            `service=WFS&version=2.0.0&request=GetFeature&typeName=cbs:cbs_buurten_2024&` +
+            `outputFormat=application/json&count=1&` +
+            `cql_filter=INTERSECTS(geom,POINT(${lng} ${lat}))`;
+        
+        let response = await fetch(wfsUrl);
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                const feature = data.features[0];
+                return {
+                    type: 'buurt',
+                    code: feature.properties.BU_CODE,
+                    naam: feature.properties.BU_NAAM,
+                    wijkCode: feature.properties.WK_CODE,
+                    gemeenteCode: feature.properties.GM_CODE,
+                    gemeenteNaam: feature.properties.GM_NAAM
+                };
+            }
+        }
+        
+        // If buurt failed, try wijk (district) level
+        wfsUrl = `https://geodata.nationaalgeoregister.nl/cbs/wfs/v1_0?` +
+            `service=WFS&version=2.0.0&request=GetFeature&typeName=cbs:cbs_wijken_2024&` +
+            `outputFormat=application/json&count=1&` +
+            `cql_filter=INTERSECTS(geom,POINT(${lng} ${lat}))`;
+        
+        response = await fetch(wfsUrl);
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                const feature = data.features[0];
+                return {
+                    type: 'wijk',
+                    code: feature.properties.WK_CODE,
+                    naam: feature.properties.WK_NAAM,
+                    gemeenteCode: feature.properties.GM_CODE,
+                    gemeenteNaam: feature.properties.GM_NAAM
+                };
+            }
+        }
+        
+        // If wijk failed, try gemeente (municipality) level
+        wfsUrl = `https://geodata.nationaalgeoregister.nl/cbs/wfs/v1_0?` +
+            `service=WFS&version=2.0.0&request=GetFeature&typeName=cbs:cbs_gemeenten_2024&` +
+            `outputFormat=application/json&count=1&` +
+            `cql_filter=INTERSECTS(geom,POINT(${lng} ${lat}))`;
+        
+        response = await fetch(wfsUrl);
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                const feature = data.features[0];
+                return {
+                    type: 'gemeente',
+                    code: feature.properties.GM_CODE,
+                    naam: feature.properties.GM_NAAM
+                };
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error getting CBS area:', error);
+        return null;
+    }
+}
+
+// Get household composition data from CBS OData API (71486ned)
+async function getCBSHouseholdData(areaData) {
+    try {
+        // CBS OData API endpoint for table 71486ned (Huishoudens; samenstelling, grootte, regio, 1 januari)
+        const apiUrl = `https://opendata.cbs.nl/ODataApi/OData/71486ned/TypedDataSet`;
+        
+        // Use the most detailed area code we have
+        const regionCode = areaData.code;
+        const regionType = areaData.type;
+        
+        // Get latest available period (2024)
+        const filter = `$filter=RegioS eq '${regionCode}' and Perioden eq '2024JJ00'`;
+        const select = `$select=Totaal_1,Eenpersoonshuishoudens_2,MeerpersoonshuishZonderKind_3,EenoudergezinnenMeerpersoonshuish_4,PaarMetKinderenMeerpersoonshuish_5`;
+        
+        const response = await fetch(`${apiUrl}?${filter}&${select}`, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            console.log(`No data for ${regionCode}, trying 2023...`);
+            
+            // Try 2023 if 2024 not available
+            const filter2023 = `$filter=RegioS eq '${regionCode}' and Perioden eq '2023JJ00'`;
+            const response2023 = await fetch(`${apiUrl}?${filter2023}&${select}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response2023.ok) {
+                throw new Error(`CBS API request failed: ${response2023.status}`);
+            }
+            
+            const data2023 = await response2023.json();
+            return processCBSHouseholdData(data2023, areaData.naam, '2023');
+        }
+        
+        const data = await response.json();
+        return processCBSHouseholdData(data, areaData.naam, '2024');
+        
+    } catch (error) {
+        console.error('Error getting CBS household data:', error);
+        return null;
+    }
+}
+
+// Process CBS household data response
+function processCBSHouseholdData(data, areaName, year) {
+    if (data.value && data.value.length > 0) {
+        const record = data.value[0];
+        
+        // CBS data fields:
+        // Totaal_1: Total households
+        // Eenpersoonshuishoudens_2: Single person households  
+        // MeerpersoonshuishZonderKind_3: Multi-person households without children
+        // EenoudergezinnenMeerpersoonshuish_4: Single parent families
+        // PaarMetKinderenMeerpersoonshuish_5: Couples with children
+        
+        const total = record.Totaal_1;
+        
+        if (!total || total === 0) {
+            console.log('No household data available for this area');
+            return null;
+        }
+        
+        // Calculate percentages - handle null values
+        const alleenstaand = record.Eenpersoonshuishoudens_2 ? 
+            Math.round((record.Eenpersoonshuishoudens_2 / total) * 100) : 0;
+        
+        const paarZonderKind = record.MeerpersoonshuishZonderKind_3 ? 
+            Math.round((record.MeerpersoonshuishZonderKind_3 / total) * 100) : 0;
+        
+        const eenOuder = record.EenoudergezinnenMeerpersoonshuish_4 ? 
+            Math.round((record.EenoudergezinnenMeerpersoonshuish_4 / total) * 100) : 0;
+        
+        const paarMetKind = record.PaarMetKinderenMeerpersoonshuish_5 ? 
+            Math.round((record.PaarMetKinderenMeerpersoonshuish_5 / total) * 100) : 0;
+        
+        console.log(`CBS data for ${areaName} (${year}):`, {
+            total,
+            alleenstaand: `${alleenstaand}%`,
+            gezinnen: `${paarMetKind}%`, 
+            eenOuder: `${eenOuder}%`,
+            overig: `${paarZonderKind}%`
+        });
+        
+        return {
+            alleenstaand: alleenstaand,
+            gezinnen: paarMetKind,
+            eenOuder: eenOuder,
+            overig: paarZonderKind,
+            bron: `CBS ${year}, ${areaName}`,
+            total: total
+        };
+    }
+    
+    return null;
 }
 
 // Update CBS info card
