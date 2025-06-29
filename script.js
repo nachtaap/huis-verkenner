@@ -125,17 +125,38 @@ async function searchAddresses(query) {
         
         const results = await response.json();
         
-        // Transform Nominatim results to our format
-        const transformedResults = results.map(result => ({
-            label: result.display_name,
-            coordinates: [parseFloat(result.lon), parseFloat(result.lat)],
-            street: result.address?.road || query,
-            housenumber: result.address?.house_number || '',
-            postalcode: result.address?.postcode || '',
-            locality: result.address?.city || result.address?.town || result.address?.village || '',
-            region: result.address?.state || 'Noord-Brabant',
-            country: 'Nederland'
-        }));
+        // Transform Nominatim results to our consistent format
+        const transformedResults = results.map(result => {
+            const address = result.address || {};
+            const street = address.road || query;
+            const housenumber = address.house_number || '';
+            const postcode = address.postcode || '';
+            const city = address.city || address.town || address.village || address.municipality || '';
+            
+            // Create consistent label format: "Straat 123, 1234AB, Stad"
+            let formattedLabel = street;
+            if (housenumber) {
+                formattedLabel += ` ${housenumber}`;
+            }
+            if (postcode) {
+                formattedLabel += `, ${postcode}`;
+            }
+            if (city) {
+                formattedLabel += `, ${city}`;
+            }
+            
+            return {
+                label: formattedLabel,
+                originalLabel: result.display_name,
+                coordinates: [parseFloat(result.lon), parseFloat(result.lat)],
+                street: street,
+                housenumber: housenumber,
+                postalcode: postcode,
+                locality: city,
+                region: 'Noord-Brabant',
+                country: 'Nederland'
+            };
+        });
 
         displaySearchResults(transformedResults);
     } catch (error) {
@@ -170,7 +191,7 @@ function displaySearchResults(results) {
                     ➕
                 </button>
             </div>
-            <div class="address-label">${result.postalcode} ${result.locality}</div>
+            <div class="address-label" style="color: #999; font-size: 12px;">${result.originalLabel}</div>
         `;
         resultsList.appendChild(card);
     });
@@ -387,9 +408,13 @@ function updateAddressList() {
     addresses.forEach((address, index) => {
         const card = document.createElement('div');
         card.className = 'address-card';
+        
+        // Use the formatted label if available, otherwise fall back to original format
+        const displayName = address.label || `${address.properties.street} ${address.properties.housenumber}`.trim();
+        
         card.innerHTML = `
             <div class="address-header">
-                <div class="address-name">${address.properties.name || address.label}</div>
+                <div class="address-name">${displayName}</div>
                 <div>
                     <button class="btn btn-map" onclick="openInMaps([${address.coordinates.join(',')}])" title="Open in kaarten">
                         🧭
@@ -399,7 +424,6 @@ function updateAddressList() {
                     </button>
                 </div>
             </div>
-            <div class="address-label">${address.label}</div>
             <div class="address-date">
                 📅 Toegevoegd: ${formatDate(address.savedDate)}
             </div>
