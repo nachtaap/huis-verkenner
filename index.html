@@ -65,6 +65,69 @@
                 </div>
             </div>
 
+            <!-- Address Detail Tab -->
+            <div id="address-detail-tab" class="tab-content hidden">
+                <div class="detail-header">
+                    <button class="back-btn" onclick="goBackToAddresses()">← Terug</button>
+                    <h2 id="detail-title">Adres Details</h2>
+                </div>
+                
+                <div class="detail-content">
+                    <div class="section">
+                        <h3 class="section-title">📍 Afstanden</h3>
+                        <div class="distance-grid">
+                            <div class="distance-card" id="distance-centrum">
+                                <div class="distance-icon">🏢</div>
+                                <div class="distance-info">
+                                    <div class="distance-name">Centrum</div>
+                                    <div class="distance-value">🚴‍♂️ Berekenen...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="distance-card" id="distance-werk">
+                                <div class="distance-icon">💼</div>
+                                <div class="distance-info">
+                                    <div class="distance-name">Werk</div>
+                                    <div class="distance-value">🚗 Berekenen...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="distance-card" id="distance-schijndel">
+                                <div class="distance-icon">🏘️</div>
+                                <div class="distance-info">
+                                    <div class="distance-name">Schijndel</div>
+                                    <div class="distance-value">🚗 Berekenen...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="distance-card" id="distance-rosmalen">
+                                <div class="distance-icon">🏡</div>
+                                <div class="distance-info">
+                                    <div class="distance-name">Rosmalen</div>
+                                    <div class="distance-value">🚗 Berekenen...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3 class="section-title">ℹ️ Adres Informatie</h3>
+                        <div class="info-card">
+                            <div id="detail-full-address">Volledig adres</div>
+                            <div id="detail-coordinates">Coördinaten</div>
+                            <div id="detail-saved-date">Opgeslagen op</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3 class="section-title">🗑️ Acties</h3>
+                        <button class="btn-danger" onclick="deleteCurrentAddress()">
+                            Verwijder dit adres
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Settings Tab -->
             <div id="settings-tab" class="tab-content hidden">
                 <div class="settings-card">
