@@ -1,3 +1,45 @@
+// OpenRouteService Configuration
+const ORS_CONFIG = {
+    apiKey: '5b3ce3597851110001cf624886d30766477c4b77968596ef1aa3411b',
+    baseUrl: 'https://api.openrouteservice.org/v2'
+};
+
+// Fixed locations for distance calculation
+const FIXED_LOCATIONS = {
+    centrum: {
+        name: 'Centrum',
+        address: 'Nieuwlandstraat 66, 5038 SP Tilburg',
+        coordinates: [5.083721, 51.559661], // Approximate coordinates
+        transport: 'cycling-regular',
+        icon: '🚴‍♂️'
+    },
+    werk: {
+        name: 'Werk',
+        address: 'Laan van Voorburg 4, 5261 LS Vught',
+        coordinates: [5.284264, 51.654503], // Approximate coordinates
+        transport: 'driving-car',
+        icon: '🚗'
+    },
+    schijndel: {
+        name: 'Schijndel',
+        address: 'Hopstraat 11, Schijndel',
+        coordinates: [5.436000, 51.616000], // Approximate coordinates
+        transport: 'driving-car',
+        icon: '🚗'
+    },
+    rosmalen: {
+        name: 'Rosmalen',
+        address: 'De Hoef 64, Rosmalen',
+        coordinates: [5.365000, 51.710000], // Approximate coordinates
+        transport: 'driving-car',
+        icon: '🚗'
+    }
+};
+
+// Current address being viewed in detail
+let currentDetailAddress = null;
+let currentDetailIndex = null;
+
 // JSONBin Configuration
 const JSONBIN_CONFIG = {
     binId: '685d28288a456b7966b6087a',
@@ -408,6 +450,7 @@ function updateAddressList() {
     addresses.forEach((address, index) => {
         const card = document.createElement('div');
         card.className = 'address-card';
+        card.style.cursor = 'pointer';
         
         // Use the formatted label if available, otherwise fall back to original format
         const displayName = address.label || `${address.properties.street} ${address.properties.housenumber}`.trim();
@@ -416,10 +459,7 @@ function updateAddressList() {
             <div class="address-header">
                 <div class="address-name">${displayName}</div>
                 <div>
-                    <button class="btn btn-map" onclick="openInMaps([${address.coordinates.join(',')}])" title="Open in kaarten">
-                        🧭
-                    </button>
-                    <button class="btn btn-delete" onclick="removeAddress(${index})" title="Verwijder adres">
+                    <button class="btn btn-delete" onclick="removeAddress(${index}); event.stopPropagation();" title="Verwijder adres">
                         🗑️
                     </button>
                 </div>
@@ -428,6 +468,10 @@ function updateAddressList() {
                 📅 Toegevoegd: ${formatDate(address.savedDate)}
             </div>
         `;
+        
+        // Add click handler for the entire card
+        card.addEventListener('click', () => showAddressDetail(address, index));
+        
         addressesList.appendChild(card);
     });
 }
@@ -547,6 +591,165 @@ function saveToLocalStorage() {
         localStorage.setItem('lastLocalSave', new Date().toISOString());
     } catch (error) {
         console.error('Error saving to localStorage:', error);
+    }
+}
+
+// Show address detail page
+async function showAddressDetail(address, index) {
+    currentDetailAddress = address;
+    currentDetailIndex = index;
+    
+    // Extract street name for title
+    const streetName = address.properties?.street || 
+                      address.label?.split(',')[0]?.split(' ').slice(0, -1).join(' ') || 
+                      'Adres';
+    
+    // Update detail page content
+    document.getElementById('detail-title').textContent = streetName;
+    
+    // Show address info
+    const displayName = address.label || `${address.properties.street} ${address.properties.housenumber}`.trim();
+    document.getElementById('detail-full-address').innerHTML = `<strong>Adres:</strong> ${displayName}`;
+    document.getElementById('detail-coordinates').innerHTML = `<strong>Coördinaten:</strong> ${address.coordinates[1].toFixed(6)}, ${address.coordinates[0].toFixed(6)}`;
+    document.getElementById('detail-saved-date').innerHTML = `<strong>Opgeslagen:</strong> ${formatDate(address.savedDate)}`;
+    
+    // Reset distance displays
+    Object.keys(FIXED_LOCATIONS).forEach(key => {
+        const card = document.getElementById(`distance-${key}`);
+        const valueElement = card.querySelector('.distance-value');
+        const transport = FIXED_LOCATIONS[key];
+        valueElement.textContent = `${transport.icon} Berekenen...`;
+        card.classList.add('loading');
+    });
+    
+    // Switch to detail tab
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    document.getElementById('address-detail-tab').classList.remove('hidden');
+    
+    // Calculate distances
+    await calculateDistances(address.coordinates);
+}
+
+// Calculate distances to fixed locations
+async function calculateDistances(fromCoordinates) {
+    const [fromLng, fromLat] = fromCoordinates;
+    
+    for (const [key, location] of Object.entries(FIXED_LOCATIONS)) {
+        try {
+            const distance = await getRouteDistance(
+                fromCoordinates,
+                location.coordinates,
+                location.transport
+            );
+            
+            const card = document.getElementById(`distance-${key}`);
+            const valueElement = card.querySelector('.distance-value');
+            
+            if (distance) {
+                const timeText = formatTime(distance.duration);
+                const distanceText = formatDistance(distance.distance);
+                valueElement.textContent = `${location.icon} ${timeText} / ${distanceText}`;
+            } else {
+                valueElement.textContent = `${location.icon} Niet beschikbaar`;
+            }
+            
+            card.classList.remove('loading');
+        } catch (error) {
+            console.error(`Error calculating distance to ${key}:`, error);
+            const card = document.getElementById(`distance-${key}`);
+            const valueElement = card.querySelector('.distance-value');
+            valueElement.textContent = `${location.icon} Fout bij berekenen`;
+            card.classList.remove('loading');
+        }
+    }
+}
+
+// Get route distance and duration from OpenRouteService
+async function getRouteDistance(fromCoords, toCoords, profile) {
+    try {
+        const [fromLng, fromLat] = fromCoords;
+        const [toLng, toLat] = toCoords;
+        
+        const response = await fetch(`${ORS_CONFIG.baseUrl}/directions/${profile}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': ORS_CONFIG.apiKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                coordinates: [[fromLng, fromLat], [toLng, toLat]],
+                format: 'json'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            return {
+                distance: route.summary.distance, // in meters
+                duration: route.summary.duration  // in seconds
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('OpenRouteService error:', error);
+        return null;
+    }
+}
+
+// Format time duration
+function formatTime(seconds) {
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) {
+        return `${minutes} min`;
+    } else {
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return remainingMinutes > 0 ? `${hours}u ${remainingMinutes}m` : `${hours}u`;
+    }
+}
+
+// Format distance
+function formatDistance(meters) {
+    if (meters < 1000) {
+        return `${Math.round(meters)} m`;
+    } else {
+        const km = (meters / 1000).toFixed(1);
+        return `${km} km`;
+    }
+}
+
+// Go back to addresses list
+function goBackToAddresses() {
+    currentDetailAddress = null;
+    currentDetailIndex = null;
+    
+    // Hide detail tab and show addresses tab
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    document.getElementById('addresses-tab').classList.remove('hidden');
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab')[1].classList.add('active');
+}
+
+// Delete current address from detail page
+async function deleteCurrentAddress() {
+    if (currentDetailIndex !== null) {
+        if (confirm('Weet je zeker dat je dit adres wilt verwijderen?')) {
+            await removeAddress(currentDetailIndex);
+            goBackToAddresses();
+        }
     }
 }
 
