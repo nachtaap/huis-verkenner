@@ -361,3 +361,141 @@ function updateAddressList() {
                     </button>
                 </div>
             </div>
+            <div class="address-label">${address.label}</div>
+            <div class="address-date">
+                📅 Toegevoegd: ${formatDate(address.savedDate)}
+            </div>
+        `;
+        addressesList.appendChild(card);
+    });
+}
+
+// Sync from cloud manually
+async function syncFromCloud() {
+    const syncBtn = document.getElementById('sync-btn');
+    syncBtn.disabled = true;
+    syncBtn.textContent = '📥 Synchroniseren...';
+    
+    showLoading('Synchroniseren met cloud...');
+    
+    try {
+        await loadFromCloud();
+        updateAddressCount();
+        updateAddressList();
+        updateLastSync();
+        showNotification('Synchronisatie succesvol!', 'success');
+    } catch (error) {
+        console.error('Sync error:', error);
+        showNotification('Synchronisatie mislukt. Controleer je internetverbinding.', 'error');
+    } finally {
+        hideLoading();
+        syncBtn.disabled = false;
+        syncBtn.textContent = '📥 Synchroniseer van cloud';
+    }
+}
+
+// Export addresses as JSON
+function exportAddresses() {
+    if (addresses.length === 0) {
+        showNotification('Geen adressen om te exporteren!', 'warning');
+        return;
+    }
+
+    const dataStr = JSON.stringify({ addresses: addresses }, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `adressen_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    
+    showNotification(`${addresses.length} adressen geëxporteerd!`, 'success');
+}
+
+// Update last sync time
+function updateLastSync() {
+    const lastSync = localStorage.getItem('lastSync');
+    const lastSyncElement = document.getElementById('last-sync');
+    
+    if (lastSync) {
+        lastSyncElement.textContent = formatDate(lastSync);
+    } else {
+        lastSyncElement.textContent = 'Nog niet gesynchroniseerd';
+    }
+}
+
+// Format date
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('nl-NL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Loading overlay functions
+function showLoading(text = 'Laden...') {
+    document.getElementById('loading-text').textContent = text;
+    document.getElementById('loading-overlay').classList.remove('hidden');
+    isLoading = true;
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+    isLoading = false;
+}
+
+// Notification system
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notification-text');
+    
+    // Remove existing type classes
+    notification.classList.remove('error', 'warning', 'success');
+    
+    // Add new type class
+    if (type !== 'success') {
+        notification.classList.add(type);
+    }
+    
+    notificationText.textContent = message;
+    notification.classList.remove('hidden');
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 3000);
+}
+
+// Error handling for network issues
+window.addEventListener('online', function() {
+    showNotification('Internetverbinding hersteld!', 'success');
+});
+
+window.addEventListener('offline', function() {
+    showNotification('Geen internetverbinding. App werkt offline.', 'warning');
+});
+
+// Auto-save to localStorage as backup
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem('addresses', JSON.stringify(addresses));
+        localStorage.setItem('lastLocalSave', new Date().toISOString());
+    } catch (error) {
+        console.error('Error saving to localStorage:', error);
+    }
+}
+
+// Periodic sync (every 5 minutes if app is active)
+setInterval(async () => {
+    if (!isLoading && navigator.onLine) {
+        try {
+            await saveToCloud();
+            console.log('Periodic sync completed');
+        } catch (error) {
+            console.log('Periodic sync failed:', error);
+        }
+    }
+}, 5 * 60 * 1000); // 5 minutes
