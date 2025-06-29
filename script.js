@@ -609,9 +609,9 @@ async function showAddressDetail(address, index) {
     
     // Show address info
     const displayName = address.label || `${address.properties.street} ${address.properties.housenumber}`.trim();
-    document.getElementById('detail-full-address').innerHTML = `<strong>Adres:</strong> ${displayName}`;
-    document.getElementById('detail-coordinates').innerHTML = `<strong>Coördinaten:</strong> ${address.coordinates[1].toFixed(6)}, ${address.coordinates[0].toFixed(6)}`;
-    document.getElementById('detail-saved-date').innerHTML = `<strong>Opgeslagen:</strong> ${formatDate(address.savedDate)}`;
+    document.getElementById('detail-full-address').textContent = displayName;
+    document.getElementById('detail-coordinates').textContent = `${address.coordinates[1].toFixed(6)}, ${address.coordinates[0].toFixed(6)}`;
+    document.getElementById('detail-saved-date').textContent = formatDate(address.savedDate);
     
     // Reset distance displays
     Object.keys(FIXED_LOCATIONS).forEach(key => {
@@ -622,14 +622,25 @@ async function showAddressDetail(address, index) {
         card.classList.add('loading');
     });
     
+    // Reset CBS info displays
+    ['gezinnen', 'alleenstaand', '1ouder', 'overig'].forEach(type => {
+        const card = document.getElementById(`info-${type}`);
+        const valueElement = card.querySelector('.info-value');
+        valueElement.textContent = 'Laden...';
+        card.classList.add('loading');
+    });
+    
     // Switch to detail tab
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
     });
     document.getElementById('address-detail-tab').classList.remove('hidden');
     
-    // Calculate distances
-    await calculateDistances(address.coordinates);
+    // Calculate distances and get CBS data
+    await Promise.all([
+        calculateDistances(address.coordinates),
+        getCBSData(address.coordinates, displayName)
+    ]);
 }
 
 // Calculate distances to fixed locations
@@ -741,6 +752,61 @@ function goBackToAddresses() {
     // Update tab buttons
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab')[1].classList.add('active');
+}
+
+// Get CBS data for the address
+async function getCBSData(coordinates, addressName) {
+    try {
+        // Mock CBS data for demonstration
+        // In a real implementation, you would call the CBS API
+        // Example: https://www.cbs.nl/en-gb/our-services/open-data
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Mock data based on typical Dutch neighborhood statistics
+        const mockCBSData = {
+            gezinnen: Math.floor(Math.random() * 25) + 35, // 35-60%
+            alleenstaand: Math.floor(Math.random() * 20) + 25, // 25-45% 
+            eenOuder: Math.floor(Math.random() * 15) + 5, // 5-20%
+            overig: Math.floor(Math.random() * 10) + 5 // 5-15%
+        };
+        
+        // Normalize to 100%
+        const total = mockCBSData.gezinnen + mockCBSData.alleenstaand + mockCBSData.eenOuder + mockCBSData.overig;
+        if (total !== 100) {
+            const adjustment = 100 - total;
+            mockCBSData.gezinnen += adjustment;
+        }
+        
+        // Update CBS info cards
+        updateCBSInfo('gezinnen', mockCBSData.gezinnen);
+        updateCBSInfo('alleenstaand', mockCBSData.alleenstaand);
+        updateCBSInfo('1ouder', mockCBSData.eenOuder);
+        updateCBSInfo('overig', mockCBSData.overig);
+        
+    } catch (error) {
+        console.error('Error getting CBS data:', error);
+        
+        // Show error state
+        ['gezinnen', 'alleenstaand', '1ouder', 'overig'].forEach(type => {
+            updateCBSInfo(type, null);
+        });
+    }
+}
+
+// Update CBS info card
+function updateCBSInfo(type, percentage) {
+    const card = document.getElementById(`info-${type}`);
+    const valueElement = card.querySelector('.info-value');
+    
+    if (percentage !== null) {
+        valueElement.textContent = `${percentage}%`;
+    } else {
+        valueElement.textContent = '-';
+    }
+    
+    card.classList.remove('loading');
 }
 
 // Delete current address from detail page
