@@ -127,9 +127,22 @@ body {
     pointer-events: none;
 }
 
-.distance-icon {
-    font-size: 28px;
-    margin-bottom: 8px;
+.distance-card .card-body {
+    padding: 16px 12px !important;
+}
+
+.distance-card h6 {
+    color: white !important;
+    font-weight: 600;
+    margin-bottom: 4px !important;
+    font-size: 15px;
+}
+
+.distance-value {
+    color: white !important;
+    font-size: 13px !important;
+    font-weight: 500;
+    opacity: 1 !important;
 }
 
 .info-card {
@@ -146,9 +159,22 @@ body {
     opacity: 0.7;
 }
 
+.info-card .card-body {
+    padding: 16px 12px !important;
+}
+
+.info-card h6 {
+    color: white !important;
+    font-weight: 600;
+    margin-bottom: 4px !important;
+    font-size: 15px;
+}
+
 .info-value {
-    font-size: 11px !important;
+    color: white !important;
+    font-size: 13px !important;
     font-weight: 500;
+    opacity: 1 !important;
 }
 
 .distance-value {
