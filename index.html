@@ -1,177 +1,129 @@
 <!DOCTYPE html>
-
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adres Zoeken - Afstand Calculator</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adres Zoeken - Afstand Calculator</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏠 Adres Zoeken</h1>
-            <p>Zoek een adres en bekijk direct de afstanden tot centrum en werk</p>
-        </div>
+<div class="container">
+<div class="header">
+<h1>🏠 Adres Zoeken</h1>
+<p>Zoek een adres en bekijk direct de afstanden tot centrum en werk</p>
+</div>
 
-```
-    <div class="search-container">
-        <div class="search-box">
-            <input type="text" id="addressInput" placeholder="Voer een adres in (bijv. Hoofdstraat 1, Amsterdam)">
-            <button class="search-btn" onclick="searchAddress()">🔍 Zoeken</button>
-        </div>
-    </div>
+<div class="search-container">
+<div class="search-box">
+<input type="text" id="addressInput" placeholder="Voer een adres in (bijv. Hoofdstraat 1, Amsterdam)">
+<button class="search-btn" onclick="searchAddress()">🔍 Zoeken</button>
+</div>
+</div>
 
-    <div class="saved-addresses-container">
-        <div class="saved-header">
-            <h3>💾 Opgeslagen Adressen</h3>
-            <button class="refresh-btn" onclick="loadSavedAddresses()">🔄 Vernieuwen</button>
-        </div>
-        <div id="savedAddressesList" class="saved-addresses-list">
-            <div class="loading">Opgeslagen adressen laden...</div>
-        </div>
-    </div>
+<div class="saved-addresses-container">
+<div class="saved-header">
+<h3>💾 Opgeslagen Adressen</h3>
+<button class="refresh-btn" onclick="loadSavedAddresses()">🔄 Vernieuwen</button>
+</div>
+<div id="savedAddressesList" class="saved-addresses-list">
+<div class="loading">Opgeslagen adressen laden...</div>
+</div>
+</div>
 
-    <div class="results-container" id="resultsContainer">
-        <h3>Zoekresultaten:</h3>
-        <div id="resultsList"></div>
-    </div>
+<div class="results-container" id="resultsContainer">
+<h3>Zoekresultaten:</h3>
+<div id="resultsList"></div>
+</div>
 
-    <div class="details-container" id="detailsContainer">
-        <div class="address-header">
-            <h2 id="selectedAddress"></h2>
-            <button class="save-btn" id="saveAddressBtn" onclick="saveCurrentAddress()">💾 Adres Opslaan</button>
-        </div>
+<div class="details-container" id="detailsContainer">
+<div class="address-header">
+<h2 id="selectedAddress"></h2>
+<button class="save-btn" id="saveAddressBtn" onclick="saveCurrentAddress()">💾 Adres Opslaan</button>
+</div>
 
-        <div class="distance-grid">
-            <div class="distance-card">
-                <h3>🚴‍♂️ Afstand tot centrum</h3>
-                <div class="distance-value" id="distanceToCenter">-</div>
-                <div class="distance-time" id="timeToCenter">-</div>
-                <small>Nieuwlandstraat, Tilburg</small>
-            </div>
+<div class="distance-grid">
+<div class="distance-card">
+<h3>🚴‍♂️ Afstand tot centrum</h3>
+<div class="distance-value" id="distanceToCenter">-</div>
+<div class="distance-time" id="timeToCenter">-</div>
+<small>Nieuwlandstraat, Tilburg</small>
+</div>
 
-            <div class="distance-card">
-                <h3>🚗 Afstand tot werk</h3>
-                <div class="distance-value" id="distanceToWork">-</div>
-                <div class="distance-time" id="timeToWork">-</div>
-                <small>Laan van Voorburg, Vught</small>
-            </div>
+<div class="distance-card">
+<h3>🚗 Afstand tot werk</h3>
+<div class="distance-value" id="distanceToWork">-</div>
+<div class="distance-time" id="timeToWork">-</div>
+<small>Laan van Voorburg, Vught</small>
+</div>
 
-            <div class="distance-card">
-                <h3>🚗 Schijndel</h3>
-                <div class="distance-value" id="distanceToPaLonnie">-</div>
-                <div class="distance-time" id="timeToPaLonnie">-</div>
-                <small>Hopstraat, Schijndel</small>
-            </div>
+<div class="distance-card">
+<h3>🚗 Schijndel</h3>
+<div class="distance-value" id="distanceToPaLonnie">-</div>
+<div class="distance-time" id="timeToPaLonnie">-</div>
+<small>Hopstraat, Schijndel</small>
+</div>
 
-            <div class="distance-card">
-                <h3>🚗 Rosmalen</h3>
-                <div class="distance-value" id="distanceToPaPiegie">-</div>
-                <div class="distance-time" id="timeToPaPiegie">-</div>
-                <small>Annenborch, Rosmalen</small>
-            </div>
+<div class="distance-card">
+<h3>🚗 Rosmalen</h3>
+<div class="distance-value" id="distanceToPaPiegie">-</div>
+<div class="distance-time" id="timeToPaPiegie">-</div>
+<small>Annenborch, Rosmalen</small>
+</div>
 
-            <div class="distance-card">
-                <h3>🚗 Amarant</h3>
-                <div class="distance-value" id="distanceToAmarant">-</div>
-                <div class="distance-time" id="timeToAmarant">-</div>
-                <small>Daniël de Brouwerpark, Tilburg</small>
-            </div>
-        </div>
-        
-        <div class="households-grid">
-            <div class="household-card">
-                <h4>🏡 Eenpersoons</h4>
-                <div class="household-value" id="singleHouseholds">...</div>
-                <small>Percentage van totaal</small>
-            </div>
-            <div class="household-card">
-                <h4>👫 Zonder kinderen</h4>
-                <div class="household-value" id="couplesNoKids">...</div>
-                <small>Percentage van totaal</small>
-            </div>
-            <div class="household-card">
-                <h4>👨‍👩‍👧‍👦 Met kinderen</h4>
-                <div class="household-value" id="couplesWithKids">...</div>
-                <small>Percentage van totaal</small>
-            </div>
-            <div class="household-card">
-                <h4>👨‍👧‍👦 Eenouder</h4>
-                <div class="household-value" id="singleParents">...</div>
-                <small>Percentage van totaal</small>
-            </div>
-            <div class="household-card">
-                <h4>🏠 Overige</h4>
-                <div class="household-value" id="otherHouseholds">...</div>
-                <small>Percentage van totaal</small>
-            </div>
-            <div class="household-card">
-                <h4>📊 Gemiddelde grootte</h4>
-                <div class="household-value" id="avgHouseholdSize">...</div>
-                <small>Personen per huishouden</small>
-            </div>
-        </div>
+<div class="distance-card">
+<h3>🚗 Amarant</h3>
+<div class="distance-value" id="distanceToAmarant">-</div>
+<div class="distance-time" id="timeToAmarant">-</div>
+<small>Daniël de Brouwerpark, Tilburg</small>
+</div>
+</div>
 
-        <!-- Funda Populariteitsindex sectie -->
-        <div class="popularity-section" id="popularitySection" style="display: none;">
-            <h3>
-                📊 Funda Populariteitsindex
-            </h3>
+<div class="households-grid">
+<div class="household-card">
+                        <h4>🏡 Eenpersoonshuishoudens</h4>
+                        <h4>🏡 Eenpersoons</h4>
+<div class="household-value" id="singleHouseholds">...</div>
+<small>Percentage van totaal</small>
+</div>
+<div class="household-card">
+                        <h4>👫 Paren zonder kinderen</h4>
+                        <h4>👫 Zonder kinderen</h4>
+<div class="household-value" id="couplesNoKids">...</div>
+<small>Percentage van totaal</small>
+</div>
+<div class="household-card">
+                        <h4>👨‍👩‍👧‍👦 Paren met kinderen</h4>
+                        <h4>👨‍👩‍👧‍👦 Met kinderen</h4>
+<div class="household-value" id="couplesWithKids">...</div>
+<small>Percentage van totaal</small>
+</div>
+<div class="household-card">
+                        <h4>👨‍👧‍👦 Eenouderhuishoudens</h4>
+                        <h4>👨‍👧‍👦 Eenouder</h4>
+<div class="household-value" id="singleParents">...</div>
+<small>Percentage van totaal</small>
+</div>
+<div class="household-card">
+                        <h4>🏠 Overige huishoudens</h4>
+                        <h4>🏠 Overige</h4>
+<div class="household-value" id="otherHouseholds">...</div>
+<small>Percentage van totaal</small>
+</div>
+<div class="household-card">
+<h4>📊 Gemiddelde grootte</h4>
+<div class="household-value" id="avgHouseholdSize">...</div>
+<small>Personen per huishouden</small>
+</div>
+</div>
 
-            <div class="popularity-inputs">
-                <div class="input-group">
-                    <label for="viewsInput">Aantal bekeken</label>
-                    <input type="number" id="viewsInput" placeholder="bijv. 245" min="0">
-                </div>
-                
-                <div class="input-group">
-                    <label for="savesInput">Aantal bewaard</label>
-                    <input type="number" id="savesInput" placeholder="bijv. 12" min="0">
-                </div>
-                
-                <div class="input-group">
-                    <label for="daysOnlineInput">Dagen op Funda</label>
-                    <input type="number" id="daysOnlineInput" placeholder="bijv. 14" min="1">
-                </div>
-            </div>
-
-            <button class="calculate-btn" onclick="calculatePopularityIndex()">
-                Bereken Populariteitsindex
-            </button>
-
-            <div class="popularity-result" id="popularityResult">
-                <div class="popularity-score" id="popularityScore">
-                    <!-- Score wordt hier getoond -->
-                </div>
-                
-                <div class="popularity-metrics">
-                    <div class="metric">
-                        <div class="metric-value" id="saveRatio">--</div>
-                        <div class="metric-label">Save ratio</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="dailyViews">--</div>
-                        <div class="metric-label">Views/dag</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="popularityStatus">--</div>
-                        <div class="metric-label">Status</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="streetview-container">
-            <a href="#" target="_blank" class="streetview-link" id="streetviewLink">
-                🌍 Bekijk in Google Street View
-            </a>
-        </div>
-    </div>
+<div class="streetview-container">
+<a href="#" target="_blank" class="streetview-link" id="streetviewLink">
+🌍 Bekijk in Google Street View
+</a>
+</div>
+</div>
 </div>
 
 <script src="script.js"></script>
-```
-
 </body>
 </html>
