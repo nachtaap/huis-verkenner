@@ -1,129 +1,122 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adres Zoeken - Afstand Calculator</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📍 Adres Manager</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-<div class="header">
-<h1>🏠 Adres Zoeken</h1>
-<p>Zoek een adres en bekijk direct de afstanden tot centrum en werk</p>
-</div>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>📍 Adres Manager</h1>
+            <p>Zoek en bewaar je favoriete adressen</p>
+        </div>
 
-<div class="search-container">
-<div class="search-box">
-<input type="text" id="addressInput" placeholder="Voer een adres in (bijv. Hoofdstraat 1, Amsterdam)">
-<button class="search-btn" onclick="searchAddress()">🔍 Zoeken</button>
-</div>
-</div>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('search')">
+                🔍<br>Zoeken
+            </button>
+            <button class="tab" onclick="switchTab('addresses')">
+                📍<br><span id="address-count">Adressen (0)</span>
+            </button>
+            <button class="tab" onclick="switchTab('settings')">
+                ⚙️<br>Instellingen
+            </button>
+        </div>
 
-<div class="saved-addresses-container">
-<div class="saved-header">
-<h3>💾 Opgeslagen Adressen</h3>
-<button class="refresh-btn" onclick="loadSavedAddresses()">🔄 Vernieuwen</button>
-</div>
-<div id="savedAddressesList" class="saved-addresses-list">
-<div class="loading">Opgeslagen adressen laden...</div>
-</div>
-</div>
+        <!-- Content -->
+        <div class="content">
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-content">
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="Zoek een adres..."
+                    >
+                    <span class="search-icon">🔍</span>
+                    <div id="loading" class="loading hidden"></div>
+                </div>
 
-<div class="results-container" id="resultsContainer">
-<h3>Zoekresultaten:</h3>
-<div id="resultsList"></div>
-</div>
+                <div id="search-results" class="results-container hidden">
+                    <div class="section-title">Zoekresultaten</div>
+                    <div id="results-list"></div>
+                </div>
 
-<div class="details-container" id="detailsContainer">
-<div class="address-header">
-<h2 id="selectedAddress"></h2>
-<button class="save-btn" id="saveAddressBtn" onclick="saveCurrentAddress()">💾 Adres Opslaan</button>
-</div>
+                <div id="no-results" class="empty-state hidden">
+                    <div class="empty-icon">📍</div>
+                    <div>Geen adressen gevonden</div>
+                </div>
+            </div>
 
-<div class="distance-grid">
-<div class="distance-card">
-<h3>🚴‍♂️ Afstand tot centrum</h3>
-<div class="distance-value" id="distanceToCenter">-</div>
-<div class="distance-time" id="timeToCenter">-</div>
-<small>Nieuwlandstraat, Tilburg</small>
-</div>
+            <!-- Addresses Tab -->
+            <div id="addresses-tab" class="tab-content hidden">
+                <div id="addresses-list" class="addresses-container"></div>
+                
+                <div id="empty-addresses" class="empty-state">
+                    <div class="empty-icon">📍</div>
+                    <div class="empty-title">Geen adressen opgeslagen</div>
+                    <div>Zoek naar adressen om ze toe te voegen aan je lijst</div>
+                    <button class="btn-primary" onclick="switchTab('search')">Start zoeken</button>
+                </div>
+            </div>
 
-<div class="distance-card">
-<h3>🚗 Afstand tot werk</h3>
-<div class="distance-value" id="distanceToWork">-</div>
-<div class="distance-time" id="timeToWork">-</div>
-<small>Laan van Voorburg, Vught</small>
-</div>
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content hidden">
+                <div class="settings-card">
+                    <div class="settings-title">JSONBin Status</div>
+                    <div class="status-indicator">
+                        <div id="connection-status" class="status-dot connected"></div>
+                        <span id="connection-text">JSONBin verbonden</span>
+                    </div>
+                    <div class="form-help">
+                        Je adressen worden automatisch gesynchroniseerd met JSONBin.
+                    </div>
+                </div>
 
-<div class="distance-card">
-<h3>🚗 Schijndel</h3>
-<div class="distance-value" id="distanceToPaLonnie">-</div>
-<div class="distance-time" id="timeToPaLonnie">-</div>
-<small>Hopstraat, Schijndel</small>
-</div>
+                <div class="settings-card">
+                    <div class="settings-title">Acties</div>
+                    <button class="btn-primary" onclick="syncFromCloud()" id="sync-btn">
+                        📥 Synchroniseer van cloud
+                    </button>
+                    <button class="btn-secondary" onclick="exportAddresses()">
+                        📤 Exporteer adressen
+                    </button>
+                    <div class="form-help">
+                        Laatste sync: <span id="last-sync">Nog niet gesynchroniseerd</span>
+                    </div>
+                </div>
 
-<div class="distance-card">
-<h3>🚗 Rosmalen</h3>
-<div class="distance-value" id="distanceToPaPiegie">-</div>
-<div class="distance-time" id="timeToPaPiegie">-</div>
-<small>Annenborch, Rosmalen</small>
-</div>
+                <div class="settings-card">
+                    <div class="settings-title">App Informatie</div>
+                    <div class="app-info">
+                        <div><strong>Versie:</strong> 1.0.0</div>
+                        <div><strong>Laatste update:</strong> Juni 2025</div>
+                        <div><strong>Opgeslagen adressen:</strong> <span id="total-addresses">0</span></div>
+                        <div><strong>JSONBin ID:</strong> 685d28288a456b7966b6087a</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="distance-card">
-<h3>🚗 Amarant</h3>
-<div class="distance-value" id="distanceToAmarant">-</div>
-<div class="distance-time" id="timeToAmarant">-</div>
-<small>Daniël de Brouwerpark, Tilburg</small>
-</div>
-</div>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <div class="loading"></div>
+            <span id="loading-text">Bezig met laden...</span>
+        </div>
+    </div>
 
-<div class="households-grid">
-<div class="household-card">
-                        <h4>🏡 Eenpersoonshuishoudens</h4>
-                        <h4>🏡 Eenpersoons</h4>
-<div class="household-value" id="singleHouseholds">...</div>
-<small>Percentage van totaal</small>
-</div>
-<div class="household-card">
-                        <h4>👫 Paren zonder kinderen</h4>
-                        <h4>👫 Zonder kinderen</h4>
-<div class="household-value" id="couplesNoKids">...</div>
-<small>Percentage van totaal</small>
-</div>
-<div class="household-card">
-                        <h4>👨‍👩‍👧‍👦 Paren met kinderen</h4>
-                        <h4>👨‍👩‍👧‍👦 Met kinderen</h4>
-<div class="household-value" id="couplesWithKids">...</div>
-<small>Percentage van totaal</small>
-</div>
-<div class="household-card">
-                        <h4>👨‍👧‍👦 Eenouderhuishoudens</h4>
-                        <h4>👨‍👧‍👦 Eenouder</h4>
-<div class="household-value" id="singleParents">...</div>
-<small>Percentage van totaal</small>
-</div>
-<div class="household-card">
-                        <h4>🏠 Overige huishoudens</h4>
-                        <h4>🏠 Overige</h4>
-<div class="household-value" id="otherHouseholds">...</div>
-<small>Percentage van totaal</small>
-</div>
-<div class="household-card">
-<h4>📊 Gemiddelde grootte</h4>
-<div class="household-value" id="avgHouseholdSize">...</div>
-<small>Personen per huishouden</small>
-</div>
-</div>
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <span id="notification-text"></span>
+    </div>
 
-<div class="streetview-container">
-<a href="#" target="_blank" class="streetview-link" id="streetviewLink">
-🌍 Bekijk in Google Street View
-</a>
-</div>
-</div>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
